@@ -41,3 +41,4 @@ def review_detail_api_view(request):
     reviews = Review.objects.all(id=id)
     data = ReviewSerializer(instance=reviews).data
     return Response(data=data)
+
