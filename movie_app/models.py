@@ -23,10 +23,12 @@ STARS = (
     (5, '* * * * *'),
 )
 
+
 class Review(models.Model):
     stars = models.IntegerField(choices=STARS, default=1)
+    text = models.TextField()
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE,
-                              related_name='reviews')
-    text = models.TextField(blank=True)
+                                related_name='reviews')
+
     def __str__(self):
         return self.text

@@ -1,44 +1,118 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
+from .serializers import (DirectorSerializer,
+                          MovieSerializer,
+                          ReviewSerializer,
+                          DirectorNameSerializer,
+                          MovieTitleSerializer,
+                          ReviewStarSerializer)
 from .models import Director, Movie, Review
 
-@api_view(http_method_names=['GET'])
+@api_view(http_method_names=['GET', 'POST'])
 def director_list_api_view(request):
-    directors = Director.objects.all()
+    if request.method == 'GET':
+        directors = Director.objects.all()
 
-    list_ = DirectorSerializer(instance=directors, many=True).data
+        list_ = DirectorSerializer(instance=directors, many=True).data
 
-    return Response(data=list_)
+        return Response(data=list_)
+    elif request.method == 'POST':
+        name = request.data.get('name')
+        director = Director.objects.create(name=name)
 
-@api_view(http_method_names=['GET'])
+        director.save()
+
+        return Response(status=status.HTTP_201_CREATED,
+                        data=DirectorSerializer(director).data)
+
+
+
+@api_view(http_method_names=['GET', 'PUT', 'DELETE'])
 def director_detail_api_view(request):
-    directors = Director.objects.all(id=id)
-    data = DirectorSerializer(instance=directors).data
-    return Response(data=data)
+    if request.method == 'GET':
+        directors = Director.objects.all(id=id)
+        data = DirectorSerializer(instance=directors).data
+        return Response(data=data)
+    elif request.method == 'PUT':
+        if request.data.get('name'):
+            Director.directors = request.data.get('directors')
+        Director.save()
+        return Response(data=DirectorNameSerializer(Director).data,
+                        status=status.HTTP_201_CREATED)
+    elif request.method == 'DELETE':
+        Director.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(http_method_names=['GET'])
+
+
+@api_view(http_method_names=['GET', 'POST'])
 def movie_list_api_view(request):
-    movies = Movie.objects.all()
+    if request.method == 'GET':
+        movies = Movie.objects.all()
 
-    list_ = MovieSerializer(instance=movies, many=True).data
-    return Response(data=list_)
+        list_ = MovieSerializer(instance=movies, many=True).data
+        return Response(data=list_)
+    elif request.method == 'POST':
+        title = request.data.get('title')
+        description = request.data.get('description')
+        director = request.data.get('director')
+        duration = request.data.get('duration')
 
-@api_view(['GET'])
+    Movie.objects.create(title=title,
+                         description=description,
+                         director=director,
+                         duration=duration)
+    Movie.save()
+    return Response(status=status.HTTP_201_CREATED,
+                    data=MovieSerializer(Movie).data)
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def movie_detail_api_view(request):
-    movies = Movie.objects.all(id=id)
-    data = MovieSerializer(instance=movies).data
-    return Response(data=data)
+    if request.method == 'GET':
+        movies = Movie.objects.all(id=id)
+        data = MovieSerializer(instance=movies).data
+        return Response(data=data)
+    elif request.method == 'PUT':
+        Movie.title = request.data.get('title')
+        Movie.description = request.data.get('description')
+        Movie.director = request.data.get('director')
+        Movie.duration = request.data.get('duration')
+        Movie.save()
+        return Response(data=MovieTitleSerializer(Movie).data,
+                        status=status.HTTP_201_CREATED)
+    elif request.method == 'DELETE':
+        Movie.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(http_method_names=['GET'])
+
+
+@api_view(http_method_names=['GET', 'POST'])
 def review_list_api_view(request):
-    reviews = Review.objects.all()
-    list_ = ReviewSerializer(instance=reviews, many=True).data
-    return Response(data=list_)
-@api_view(['GET'])
+    if request.method == 'GET':
+        reviews = Review.objects.all()
+        list_ = ReviewSerializer(instance=reviews, many=True).data
+        return Response(data=list_)
+    elif request.method == 'POST':
+        stars = request.data.get('stars')
+        movie_id = request.data.get('movie_id')
+        Review.objects.create(stars=stars, movie_id=movie_id)
+        Review.save()
+        return Response(status=status.HTTP_201_CREATED,
+                        data= ReviewStarSerializer(Review).data)
+@api_view(['GET', 'PUT', 'DELETE'])
 def review_detail_api_view(request):
-    reviews = Review.objects.all(id=id)
-    data = ReviewSerializer(instance=reviews).data
-    return Response(data=data)
+    if request.method == 'GET':
+        reviews = Review.objects.all(id=id)
+        data = ReviewSerializer(instance=reviews).data
+        return Response(data=data)
+    elif request.method == 'PUT':
+        Review.stars = request.data.get('stars')
+        Review.movie_id = request.data.get('movie_id')
+        Review.save(data=ReviewStarSerializer(Review).data,
+                    status=status.HTTP_201_CREATED)
+        return Response()
+    elif request.method == 'DELETE':
+        Review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
