@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import Director, Movie, Review
 
+
+
+
 class DirectorNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Director
@@ -10,6 +13,14 @@ class DirectorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Director
         fields = '__all__'
+
+
+class DirectorValidateSerializer(serializers.Serializer):
+    name = serializers.CharField()
+
+    def validate(self, attrs):
+        name = attrs.get('name')
+
 
 class ReviewStarSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,11 +35,19 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
+class ReviewValidateSerializer(serializers.Serializer):
+    stars = serializers.IntegerField()
+    movie = serializers.IntegerField()
+
+    def validate(self, attrs):
+        stars = attrs.get('stars')
+        movie = attrs.get('movie')
+
+
 class MovieTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = '__all__'
-
 
 class MovieSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)
@@ -45,5 +64,16 @@ class MovieSerializer(serializers.ModelSerializer):
             average = sum_reviews / len(reviews)
             return average
         return None
+
+class MovieValidateSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    description = serializers.CharField()
+    stars = serializers.IntegerField()
+
+
+    def validate(self, attrs):
+        title = attrs.get('title')
+        description = attrs.get('description')
+        stars = attrs.get('stars')
 
 
