@@ -17,7 +17,8 @@ from .models import Director, Movie, Review
 from django.db import transaction
 
 @api_view(http_method_names=['GET', 'POST'])
-def director_list_api_view(request):
+def director_list_create_api_view(request):
+    print(request.user)
     if request.method == 'GET':
         directors = Director.objects.all()
 
