@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from wsgiref.validate import validator
 
 from django.core.serializers import serialize
@@ -15,6 +16,57 @@ from .serializers import (DirectorSerializer,
                           ReviewValidateSerializer)
 from .models import Director, Movie, Review
 from django.db import transaction
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.viewsets import ModelViewSet
+
+class DirectorListCreateAPIView(ListCreateAPIView):
+    queryset = Director.objects.all()
+    serializer_class = DirectorSerializer
+
+    def create(self, request, *args, **kwargs):
+        validator = DirectorValidateSerializer(data=request.data)
+        if not validator.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST,
+                            data={'errors': validator.errors})
+        name = validator.validated_data['name']
+
+        with transaction.atomic():
+            product = Director.objects.create(
+                name=request.data['name'],
+                director=request.data['director'],
+            )
+            director = Director.objects.create()
+            director.director_id = director.id
+
+        return Response(status=status.HTTP_201_CREATED,
+                        data=DirectorSerializer(product).data)
+
+
+class CustomPagination(PageNumberPagination):
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.page.paginator.count),
+            ('next', self.get_next_link()),
+            ('previous', self.get_previous_link()),
+            ('results', data)
+        ]))
+
+class ReviewListAPIView(ListCreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer()
+    pagination_class = CustomPagination
+
+class MovieViewSet(ModelViewSet):
+    queryset = Movie.objects.all()
+    serializer_class = MovieSerializer()
+    pagination_class = CustomPagination
+
+class ReviewDetailAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer()
+    lookup_field = 'id'
 
 @api_view(http_method_names=['GET', 'POST'])
 def director_list_create_api_view(request):
